@@ -21,3 +21,4 @@ export default function handler(req, res) {
   const orders = generateOrders();
   res.status(200).json(orders);
 }
+
