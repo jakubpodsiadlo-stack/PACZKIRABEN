@@ -3,6 +3,7 @@ let authToken = "";
 
 const loginForm = document.getElementById('loginForm');
 const statusPanel = document.getElementById('statusPanel');
+const clientPanel = document.getElementById('clientPanel');
 
 loginForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -18,8 +19,12 @@ loginForm.addEventListener('submit', async e => {
         if(!res.ok) return alert('Nieprawidłowe dane');
         const data = await res.json();
         authToken = data.token;
+
+        // Ukrywamy login i pokazujemy panele
         loginForm.style.display='none';
         statusPanel.style.display='flex';
+        clientPanel.style.display='block';
+
         loadStatuses();
     } catch(err){ console.error(err); alert('Błąd logowania'); }
 });
