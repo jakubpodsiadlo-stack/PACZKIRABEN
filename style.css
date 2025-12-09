@@ -1,3 +1,4 @@
+/* Ogólne ustawienia */
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
 
 /* Panel klienta */
@@ -10,16 +11,27 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padd
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
-#clientPanel h1 { margin: 0; font-size: 24px; }
+#clientPanel h1 { margin: 0; font-size: 24px; font-family: 'Poppins', sans-serif; }
 #clientPanel p { margin: 5px 0 0 0; font-size: 16px; }
 
-h2 { color: #2c3e50; margin-top: 30px; }
+/* Nagłówek główny */
+#mainHeader {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #2c3e50;
+    margin-top: 30px;
+    letter-spacing: 2px;
+    font-size: 32px;
+}
 
-#loginForm { background: #fff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 300px; display: flex; flex-direction: column; align-items: center; margin-top: 50px;}
+/* Formularz logowania */
+#loginForm { background: #fff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 300px; display: flex; flex-direction: column; align-items: center; margin-top: 20px;}
 #loginForm input { padding: 10px; margin: 10px 0; width: 100%; border-radius: 8px; border: 1px solid #ccc; }
 #loginForm button { padding: 10px; margin-top: 10px; width: 100%; border: none; border-radius: 8px; background-color: #2980b9; color: #fff; cursor: pointer; }
 #loginForm button:hover { background-color: #1f5d8b; }
 
+/* Panel statusów */
 #statusPanel { display:none; width: 95%; max-width: 900px; margin-top: 30px; flex-direction: column; align-items: center; }
 #searchInput { padding:10px; margin-bottom:20px; width:250px; border-radius:8px; border:1px solid #ccc; }
 
@@ -29,6 +41,7 @@ th { background:#2980b9; color:#fff; text-transform:uppercase; }
 tr:nth-child(even) { background:#f7f9fb; }
 tr:hover { background:#e3f2fd; }
 
+/* Statusy */
 .status { font-weight:600; padding:6px 12px; border-radius:6px; color:#fff; text-align:center; min-width:100px; display:inline-block;}
 .Oczekuje { background:#7f8c8d; }
 .Wdroze { background:#e67e22; }
