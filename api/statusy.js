@@ -5,8 +5,8 @@ function getRandomStatus() {
 
 function generateOrders() {
   const orders = {};
-  for(let i=1; i<=10; i++){
-    const orderNum = "ZAM" + String(i).padStart(3,"0");
+  for(let i=1; i<=100; i++){
+    const orderNum = "RABEN" + String(i).padStart(3,"0");
     orders[orderNum] = getRandomStatus();
   }
   return orders;
