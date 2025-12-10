@@ -26,18 +26,8 @@ function showHelperQuestion() {
     helperBox.style.borderRadius = "8px";
     helperBox.style.textAlign = "center";
 
-    let question = "";
-    let correctAnswer = "";
-
-    if (failedAttempts < 3) {
-        // PYTANIE POMOCNICZE #1 – przed 3 próbą
-        question = "Jakie jest hasło do panelu?";
-        correctAnswer = "ziemniakiibulka";
-    } else {
-        // PYTANIE POMOCNICZE #2 – po trzech błędach
-        question = "Co się robi w operze?";
-        correctAnswer = "GWAŁCI";
-    }
+    const question = "Co się robi w operze?";
+    const correctAnswer = "śpiewa";
 
     helperBox.innerHTML = `
         <p><b>Niepoprawne dane logowania!</b><br>
@@ -106,7 +96,6 @@ loginForm.addEventListener("submit", async (e) => {
         showHelperQuestion();
     }
 });
-
 
 // STATUSY — GENEROWANIE & SORTOWANIE
 let orderData = [];
