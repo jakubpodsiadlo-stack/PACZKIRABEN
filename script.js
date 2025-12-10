@@ -1,42 +1,83 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="UTF-8">
-<title>PANEL LOGISTYKA RABEN</title>
-<link rel="stylesheet" href="style.css">
-<!-- Dodajemy Google Font: Poppins -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-</head>
-<body>
+let allStatuses = {};
+let authToken = "";
+let sortAsc = true; // kontrola kierunku sortowania
 
-<!-- Panel klienta (ukryty na start) -->
-<div id="clientPanel" style="display:none;">
-    <h1>Panel Klienta</h1>
-    <p>Witaj, tu możesz śledzić swoje paczki i statusy zamówień.</p>
-</div>
+const loginForm = document.getElementById('loginForm');
+const statusPanel = document.getElementById('statusPanel');
+const clientPanel = document.getElementById('clientPanel');
 
-<h2 id="mainHeader">PANEL LOGISTYKA RABEN</h2>
+loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-<form id="loginForm">
-<input type="text" id="username" placeholder="Login" required>
-<input type="password" id="password" placeholder="Hasło" required>
-<button type="submit">Zaloguj</button>
-</form>
+    try {
+        const res = await fetch('/api/login', {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json' },
+            body:JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if(!res.ok) return alert('Nieprawidłowe dane');
+        
+        authToken = data.token;
 
-<div id="statusPanel">
-<input type="text" id="searchInput" placeholder="Wyszukaj numer zamówienia..." oninput="filterOrders()">
-<table>
-<thead>
-<tr>
-    <th>Numer zamówienia</th>
-    <th onclick="sortByStatus()" style="cursor:pointer;">Stan &#x25B2;&#x25BC;</th>
-</tr>
-</thead>
-<tbody id="statusTable"></tbody>
-</table>
-</div>
+        // Ukrywamy login i pokazujemy panele
+        loginForm.style.display='none';
+        statusPanel.style.display='flex';
+        clientPanel.style.display='block';
 
-<script src="script.js" defer></script>
-</body>
-</html>
+        loadStatuses();
+    } catch(err){ console.error(err); alert('Błąd logowania'); }
+});
 
+async function loadStatuses(){
+    try{
+        const res = await fetch('/api/statusy',{ headers:{ 'Authorization':'Bearer '+authToken } });
+        if(!res.ok) return alert('Nie udało się pobrać statusów');
+        const statuses = await res.json();
+        allStatuses=statuses;
+        updateTable(allStatuses);
+    }catch(err){ console.error(err); }
+}
+
+function filterOrders(){
+    const query=document.getElementById('searchInput').value.toLowerCase();
+    const filtered=Object.fromEntries(Object.entries(allStatuses).filter(([key])=>key.toLowerCase().includes(query)));
+    updateTable(filtered);
+}
+
+function sortByStatus(){
+    const entries = Object.entries(allStatuses);
+    entries.sort((a,b)=>{
+        if(a[1] < b[1]) return sortAsc ? -1 : 1;
+        if(a[1] > b[1]) return sortAsc ? 1 : -1;
+        return 0;
+    });
+    sortAsc = !sortAsc; // zmiana kierunku sortowania przy kolejnym kliknięciu
+    const sortedStatuses = Object.fromEntries(entries);
+    updateTable(sortedStatuses);
+}
+
+function updateTable(statuses){
+    const tbody=document.getElementById("statusTable");
+    tbody.innerHTML="";
+    for(const order in statuses){
+        const row=document.createElement("tr");
+        const cellOrder=document.createElement("td"); cellOrder.innerText=order;
+        const cellStatus=document.createElement("td");
+        const span=document.createElement("span"); span.innerText=statuses[order];
+        switch(statuses[order]){
+            case "Oczekuje na odbiór": span.className="status Oczekuje"; break;
+            case "W drodze": span.className="status Wdroze"; break;
+            case "Dostarczone": span.className="status Dostarczone"; break;
+            case "Opóźnione": span.className="status Opoznione"; break;
+            default: span.className="status"; break;
+        }
+        cellStatus.appendChild(span);
+        row.appendChild(cellOrder);
+        row.appendChild(cellStatus);
+        tbody.appendChild(row);
+    }
+}
+setInterval(()=>{ if(authToken) loadStatuses(); },30000);
