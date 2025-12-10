@@ -36,7 +36,7 @@ function showHelperQuestion() {
     } else {
         // PYTANIE POMOCNICZE #2 – po trzech błędach
         question = "Co się robi w operze?";
-        correctAnswer = "śpiewa";
+        correctAnswer = "GWAŁCI";
     }
 
     helperBox.innerHTML = `
