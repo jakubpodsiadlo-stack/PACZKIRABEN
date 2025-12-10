@@ -1,69 +1,158 @@
-let allStatuses = {};
-let authToken = "";
+// ELEMENTY
+const loginForm = document.getElementById("loginForm");
+const statusPanel = document.getElementById("statusPanel");
+const clientPanel = document.getElementById("clientPanel");
 
-const loginForm = document.getElementById('loginForm');
-const statusPanel = document.getElementById('statusPanel');
-const clientPanel = document.getElementById('clientPanel');
+// PRÓBY LOGOWANIA
+let failedAttempts = 0;
 
-loginForm.addEventListener('submit', async e => {
+// ELEMENTY PYTANIA POMOCNICZEGO
+let helperBox;
+let helperInput;
+let helperButton;
+let helperVisible = false;
+
+// FUNKCJA WYŚWIETLENIA PYTANIA POMOCNICZEGO
+function showHelperQuestion() {
+    if (helperVisible) return;
+
+    helperVisible = true;
+
+    helperBox = document.createElement("div");
+    helperBox.style.marginTop = "15px";
+    helperBox.style.padding = "10px";
+    helperBox.style.border = "1px solid #c0392b";
+    helperBox.style.background = "#fdecea";
+    helperBox.style.borderRadius = "8px";
+    helperBox.style.textAlign = "center";
+
+    let question = "";
+    let correctAnswer = "";
+
+    if (failedAttempts < 3) {
+        // PYTANIE POMOCNICZE #1 – przed 3 próbą
+        question = "Jakie jest hasło do panelu?";
+        correctAnswer = "ziemniakiibulka";
+    } else {
+        // PYTANIE POMOCNICZE #2 – po trzech błędach
+        question = "Co się robi w operze?";
+        correctAnswer = "śpiewa";
+    }
+
+    helperBox.innerHTML = `
+        <p><b>Niepoprawne dane logowania!</b><br>
+        Pytanie pomocnicze:<br><i>${question}</i></p>
+    `;
+
+    helperInput = document.createElement("input");
+    helperInput.placeholder = "Odpowiedź...";
+    helperInput.style.padding = "8px";
+    helperInput.style.width = "80%";
+    helperInput.style.borderRadius = "6px";
+    helperInput.style.border = "1px solid #ccc";
+    helperInput.style.marginTop = "8px";
+
+    helperButton = document.createElement("button");
+    helperButton.innerText = "Sprawdź";
+    helperButton.style.padding = "8px";
+    helperButton.style.width = "50%";
+    helperButton.style.marginTop = "10px";
+    helperButton.style.background = "#2980b9";
+    helperButton.style.color = "#fff";
+    helperButton.style.border = "none";
+    helperButton.style.borderRadius = "8px";
+    helperButton.style.cursor = "pointer";
+
+    helperButton.onclick = () => {
+        if (helperInput.value.trim().toLowerCase() === correctAnswer) {
+            alert("Dobrze! Logowanie odblokowane.");
+            loginOK();
+        } else {
+            alert("Zła odpowiedź! Spróbuj ponownie.");
+        }
+    };
+
+    helperBox.appendChild(helperInput);
+    helperBox.appendChild(helperButton);
+    loginForm.appendChild(helperBox);
+}
+
+// FUNKCJA LOGOWANIA OK
+function loginOK() {
+    loginForm.style.display = "none";
+    clientPanel.style.display = "block";
+    statusPanel.style.display = "block";
+}
+
+// OBSŁUGA LOGOWANIA
+loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
 
-    try {
-        const res = await fetch('/api/login', {
-            method:'POST',
-            headers:{ 'Content-Type':'application/json' },
-            body:JSON.stringify({ username, password })
-        });
-        if(!res.ok) return alert('Nieprawidłowe dane');
-        const data = await res.json();
-        authToken = data.token;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
-        // Ukrywamy login i pokazujemy panele
-        loginForm.style.display='none';
-        statusPanel.style.display='flex';
-        clientPanel.style.display='block';
+    const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
 
-        loadStatuses();
-    } catch(err){ console.error(err); alert('Błąd logowania'); }
+    const data = await response.json();
+
+    if (data.success) {
+        loginOK();
+    } else {
+        failedAttempts++;
+        showHelperQuestion();
+    }
 });
 
-async function loadStatuses(){
-    try{
-        const res = await fetch('/api/statusy',{ headers:{ 'Authorization':'Bearer '+authToken } });
-        if(!res.ok) return alert('Nie udało się pobrać statusów');
-        const statuses = await res.json();
-        allStatuses=statuses;
-        updateTable(allStatuses);
-    }catch(err){ console.error(err); }
+
+// STATUSY — GENEROWANIE & SORTOWANIE
+let orderData = [];
+
+// Pobieranie przykładowych statusów
+async function loadStatuses() {
+    const res = await fetch("/api/statusy");
+    orderData = await res.json();
+    renderTable(orderData);
 }
 
-function filterOrders(){
-    const query=document.getElementById('searchInput').value.toLowerCase();
-    const filtered=Object.fromEntries(Object.entries(allStatuses).filter(([key])=>key.toLowerCase().includes(query)));
-    updateTable(filtered);
+function renderTable(data) {
+    const table = document.getElementById("statusTable");
+    table.innerHTML = "";
+
+    data.forEach(item => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${item.order}</td>
+            <td><span class="status ${item.status}">${item.status}</span></td>
+        `;
+
+        table.appendChild(row);
+    });
 }
 
-function updateTable(statuses){
-    const tbody=document.getElementById("statusTable");
-    tbody.innerHTML="";
-    for(const order in statuses){
-        const row=document.createElement("tr");
-        const cellOrder=document.createElement("td"); cellOrder.innerText=order;
-        const cellStatus=document.createElement("td");
-        const span=document.createElement("span"); span.innerText=statuses[order];
-        switch(statuses[order]){
-            case "Oczekuje na odbiór": span.className="status Oczekuje"; break;
-            case "W drodze": span.className="status Wdroze"; break;
-            case "Dostarczone": span.className="status Dostarczone"; break;
-            case "Opóźnione": span.className="status Opoznione"; break;
-            default: span.className="status"; break;
-        }
-        cellStatus.appendChild(span);
-        row.appendChild(cellOrder);
-        row.appendChild(cellStatus);
-        tbody.appendChild(row);
-    }
+// SORTOWANIE PO STATUSIE
+let sortDirection = 1;
+
+function sortByStatus() {
+    orderData.sort((a, b) => {
+        if (a.status < b.status) return -1 * sortDirection;
+        if (a.status > b.status) return 1 * sortDirection;
+        return 0;
+    });
+    sortDirection *= -1;
+    renderTable(orderData);
 }
-setInterval(()=>{ if(authToken) loadStatuses(); },30000);
+
+// WYSZUKIWANIE
+function filterOrders() {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    const filtered = orderData.filter(o => o.order.toLowerCase().includes(q));
+    renderTable(filtered);
+}
+
+// START
+loadStatuses();
